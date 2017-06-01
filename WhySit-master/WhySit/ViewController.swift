@@ -6,8 +6,8 @@
 //  Copyright © 2017 Andrew McConnell. All rights reserved.
 //
 // TODO:
-// start advertising on watch 20min before end of window NO MATTER WHAT
-// NOTE: scheduler is dependent on user setting same time on watch and phone
+// delete csv if 200 response from server
+// 2:07-2:27
 
 import UIKit
 import CoreLocation
@@ -15,6 +15,7 @@ import ResearchKit
 import CoreBluetooth
 import UserNotifications
 import UserNotificationsUI
+import AVFoundation
 
 class ViewController: UIViewController, CLLocationManagerDelegate {
     
@@ -49,6 +50,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
     
     var time1Passed = Double()
     var time2Passed = Double()
+    
+    var player:AVAudioPlayer!
+    
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -78,6 +83,28 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         print("View did load")
         windowLength = (sleepTime - wakeUpTime) / 5
         print("\(windowLength)")
+        
+        // PLAY SILENT AUDIO FOR INFINITE BACKGROUND TIME
+        let path = Bundle.main.path(forResource: "silence-10sec", ofType: "mp3")!
+        let audioUrl = NSURL(fileURLWithPath: path)
+        do
+        {
+            player = try AVAudioPlayer(contentsOf: audioUrl as URL)
+            // if you want it play infinite time: player.numberOfLoops = (-1)
+            player.numberOfLoops = (-1)
+            player.prepareToPlay()
+        }
+        catch
+        {
+            //catching the error.
+        }
+        let session:AVAudioSession = AVAudioSession.sharedInstance()
+        
+        do {
+            try session.setCategory(AVAudioSessionCategoryPlayback, with: AVAudioSessionCategoryOptions.mixWithOthers)
+        } catch {
+            //catching the error.
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -325,6 +352,7 @@ extension ViewController : ORKTaskViewControllerDelegate {
             }
             
         }
+        survey.isEnabled = false
         centralManager?.scanForPeripherals(withServices: arrayOfServices, options: nil)
         taskViewController.dismiss(animated: true, completion: nil)
     }
@@ -404,6 +432,7 @@ extension ViewController: CBCentralManagerDelegate {
     
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
         print("...")
+        print("NotificationTriggeredThisWindow: \(notificationTriggeredThisWindow)")
         // Check if survey should be enabled
         let hour = Calendar.current.component(.hour, from: Date())
         print("Time: \(hour)")
@@ -411,6 +440,7 @@ extension ViewController: CBCentralManagerDelegate {
             notificationTriggeredThisWindow = false
         }*/
         if schedulerDaemonCheck() {
+            print("Scheduler daemon says to allow survey")
             notificationTriggeredThisWindow = false
         }
  
@@ -429,6 +459,7 @@ extension ViewController: CBCentralManagerDelegate {
             print(peripheral.identifier)
             centralManager?.stopScan()
             survey.isEnabled = true
+            notificationTriggeredThisWindow = true
         }
     }
     

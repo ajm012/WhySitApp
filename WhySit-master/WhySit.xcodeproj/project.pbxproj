@@ -22,6 +22,7 @@
 		BF8D22001ECF9CB9009E913E /* ResearchKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF8D21FD1ECF9CA3009E913E /* ResearchKit.framework */; };
 		BF8D22011ECF9CB9009E913E /* ResearchKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = BF8D21FD1ECF9CA3009E913E /* ResearchKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		BFA604AA1EB9059D00143EE5 /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BFA604A91EB9059D00143EE5 /* CoreBluetooth.framework */; };
+		BFBD790E1EE09C900007F49B /* silence-10sec.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = BFBD790D1EE09C900007F49B /* silence-10sec.mp3 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -97,6 +98,7 @@
 		BF675E081EAFBE9B00FAFF26 /* ConsentTask.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConsentTask.swift; sourceTree = "<group>"; };
 		BF8D21F61ECF9CA0009E913E /* ResearchKit.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ResearchKit.xcodeproj; path = "../ResearchKit-master/ResearchKit.xcodeproj"; sourceTree = "<group>"; };
 		BFA604A91EB9059D00143EE5 /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
+		BFBD790D1EE09C900007F49B /* silence-10sec.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "silence-10sec.mp3"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -162,6 +164,7 @@
 				BF675DCE1EAFB0AA00FAFF26 /* Assets.xcassets */,
 				BF675DD01EAFB0AA00FAFF26 /* LaunchScreen.storyboard */,
 				BF675DD31EAFB0AA00FAFF26 /* Info.plist */,
+				BFBD790D1EE09C900007F49B /* silence-10sec.mp3 */,
 			);
 			path = WhySit;
 			sourceTree = "<group>";
@@ -342,6 +345,7 @@
 				BF675DD21EAFB0AA00FAFF26 /* LaunchScreen.storyboard in Resources */,
 				BF675DCF1EAFB0AA00FAFF26 /* Assets.xcassets in Resources */,
 				BF675DCD1EAFB0AA00FAFF26 /* Main.storyboard in Resources */,
+				BFBD790E1EE09C900007F49B /* silence-10sec.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
