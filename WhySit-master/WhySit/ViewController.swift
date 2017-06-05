@@ -6,8 +6,8 @@
 //  Copyright © 2017 Andrew McConnell. All rights reserved.
 //
 // TODO:
-// delete csv if 200 response from server
-// 2:07-2:27
+// scheduler almost works, but survey not enabled when it should be
+// on viewload, check for stored csvs
 
 import UIKit
 import CoreLocation
@@ -105,6 +105,25 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         } catch {
             //catching the error.
         }
+        
+        // check for stored surveys in case of crash
+        // loop until file not found
+        
+        while true {
+            let DocumentDirURL = try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+            let fileName = "Survey" + String(count)
+            let fileURL = DocumentDirURL.appendingPathComponent(fileName).appendingPathExtension("csv")
+            let fileManager = FileManager.default
+            
+            // Check if file exists, given its path
+            
+            if fileManager.fileExists(atPath: "\(fileURL)") {
+                count += 1
+                continue // find maximum survey num taken
+            } else { // if SurveyX not found, set count to X
+                break
+            }
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -178,11 +197,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         }
     }
     
-    @IBAction func consentTapped(sender : AnyObject) {
+    /*@IBAction func consentTapped(sender : AnyObject) {
         let taskViewController = ORKTaskViewController(task: ConsentTask, taskRun: nil)
         taskViewController.delegate = self
         self.present(taskViewController, animated: true, completion: nil)
-    }
+    }*/
     
     @IBAction func surveyTapped(sender : AnyObject) {
         let taskViewController = ORKTaskViewController(task: SurveyTask, taskRun: nil)
@@ -344,6 +363,9 @@ extension ViewController : ORKTaskViewControllerDelegate {
             csvText += (hour as NSNumber).stringValue + ":" + (minutes as NSNumber).stringValue
             csvText += ":" + (seconds as NSNumber).stringValue
             
+            UNUserNotificationCenter.current().removeAllDeliveredNotifications()
+            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [requestIdentifier])
+            
             do {
                 // Write to the file
                 try csvText.write(to: fileURL, atomically: true, encoding: String.Encoding.utf8)
@@ -371,13 +393,13 @@ extension ViewController : ORKTaskViewControllerDelegate {
                 print("Failed reading from URL: \(fileURL), Error: " + error.localizedDescription)
             }
             print("File Text: \(readString)")
-            sendToServer(packet: "survey="+String(x)+"&"+readString)
+            sendToServer(packet: "survey="+String(x)+"&"+readString, url: fileURL)
             try! FileManager.default.removeItem(atPath: fileURL.path)
         }
         count = 1
     }
     
-    func sendToServer(packet: String) {
+    func sendToServer(packet: String, url: URL) {
         var request = URLRequest(url: URL(string: "http://murphy.wot.eecs.northwestern.edu/~ajm012/WhySitServer.py")!)
         request.httpMethod = "POST"
         let postString = packet
@@ -388,9 +410,18 @@ extension ViewController : ORKTaskViewControllerDelegate {
                 print("error=\(error)")
                 return
             }
-            if let httpStatus = response as? HTTPURLResponse, httpStatus.statusCode != 200 {// check for http errors
+            if let httpStatus = response as? HTTPURLResponse, httpStatus.statusCode != 200 {
                 print("statusCode should be 200, but is \(httpStatus.statusCode)")
                 print("response = \(response)")
+                self.submit.isEnabled = true // allow user to try again
+            } else { // if HTTP statusCode is 200, delete file
+                let fileManager = FileManager.default
+                do {
+                    try fileManager.removeItem(atPath: "\(url)")
+                }
+                catch let error as NSError {
+                    print("Ooops! Something went wrong: \(error)")
+                }
             }
             let responseString = String(data: data, encoding: .utf8)
             print("responseString = \(responseString)")
@@ -433,6 +464,7 @@ extension ViewController: CBCentralManagerDelegate {
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
         print("...")
         print("NotificationTriggeredThisWindow: \(notificationTriggeredThisWindow)")
+        print("Count: \(count)")
         // Check if survey should be enabled
         let hour = Calendar.current.component(.hour, from: Date())
         print("Time: \(hour)")
@@ -442,6 +474,10 @@ extension ViewController: CBCentralManagerDelegate {
         if schedulerDaemonCheck() {
             print("Scheduler daemon says to allow survey")
             notificationTriggeredThisWindow = false
+            survey.isEnabled = true
+        }
+        else {
+            print("Ignoring signal")
         }
  
         if (peripheral.name != nil && !notificationTriggeredThisWindow) {
@@ -453,11 +489,11 @@ extension ViewController: CBCentralManagerDelegate {
             print(peripheral.name! as Any)
             print("\(advertisementData)".components(separatedBy: "\n"))
             //peripherals.append(peripheral)
-            print("Connecting...")
+            //print("Connecting...")
             //peripheral.delegate = self // added
-            centralManager?.connect(peripheral, options: nil)
+            //centralManager?.connect(peripheral, options: nil)
             print(peripheral.identifier)
-            centralManager?.stopScan()
+            //centralManager?.stopScan()
             survey.isEnabled = true
             notificationTriggeredThisWindow = true
         }
