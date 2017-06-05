@@ -8,6 +8,7 @@
 // TODO:
 // scheduler almost works, but survey not enabled when it should be
 // on viewload, check for stored csvs
+// block surveys outside of window
 
 import UIKit
 import CoreLocation
@@ -53,16 +54,70 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
     
     var player:AVAudioPlayer!
     
+    var filePath:URL!
+    let home = NSHomeDirectory()
+    
+    struct defaultsKeys {
+        static let id = "userId"
+        static let path = "docsPath"
+    }
+    
     
 
     override func viewDidLoad() {
         super.viewDidLoad()
         centralManager = CBCentralManager(delegate: self, queue: DispatchQueue.main)
-        survey.isEnabled = false
+        
+        let defaults = UserDefaults.standard
+        
+        
+        // check if id/doc path already set
+        if let stringOne = defaults.string(forKey: defaultsKeys.id) {
+            print(stringOne) // Some String Value
+            let index = stringOne.index(stringOne.startIndex, offsetBy: 8)
+            let userId = stringOne.substring(to: index)
+            id.text = userId
+            if URL(string: defaults.string(forKey: defaultsKeys.path)!) != nil {
+                let documentsPath = NSURL(fileURLWithPath: NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0])
+                filePath = documentsPath.appendingPathComponent(stringOne)
+                //filePath = URL(fileURLWithPath: "/var/mobile/Containers/Data/Application/" + stringOne + "/Documents")
+                do {
+                    print("Creating \(filePath.path)")
+                    try FileManager.default.createDirectory(atPath: filePath.path, withIntermediateDirectories: true, attributes: nil)
+                } catch let error as NSError {
+                    print(error.localizedDescription);
+                }
+            } else {
+                let documentsPath = NSURL(fileURLWithPath: NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0])
+                filePath = documentsPath.appendingPathComponent(stringOne)
+                //filePath = URL(fileURLWithPath: "/var/mobile/Containers/Data/Application/" + uuid + "/Documents")
+                do {
+                    try FileManager.default.createDirectory(atPath: filePath.path, withIntermediateDirectories: true, attributes: nil)
+                } catch let error as NSError {
+                    print(error.localizedDescription);
+                }
+            }
+        } else {
+            let index = uuid.index(uuid.startIndex, offsetBy: 8)
+            let userId = uuid.substring(to: index)
+            id.text = userId
+            let documentsPath = NSURL(fileURLWithPath: NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0])
+            filePath = documentsPath.appendingPathComponent(uuid)
+            //filePath = URL(fileURLWithPath: "/var/mobile/Containers/Data/Application/" + uuid + "/Documents")
+            do {
+                try FileManager.default.createDirectory(atPath: filePath.path, withIntermediateDirectories: true, attributes: nil)
+            } catch let error as NSError {
+                print(error.localizedDescription);
+            }
+            defaults.set(uuid, forKey: defaultsKeys.id)
+            defaults.set(filePath, forKey: defaultsKeys.path)
+        }
+        
+        
+        //survey.isEnabled = false
         submit.isEnabled = false
-        let index = uuid.index(uuid.startIndex, offsetBy: 8)
-        let userId = uuid.substring(to: index)
-        id.text = userId
+        
+        
         
         wake.text = String(format: "%.2f", time1Passed)
         sleep.text = String(format: "%.2f", time2Passed)
@@ -110,19 +165,25 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         // loop until file not found
         
         while true {
-            let DocumentDirURL = try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+            //let DocumentDirURL =  try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: NSURL() as URL, create: false)
             let fileName = "Survey" + String(count)
-            let fileURL = DocumentDirURL.appendingPathComponent(fileName).appendingPathExtension("csv")
+            let fileURL = filePath.appendingPathComponent(fileName).appendingPathExtension("csv")
+            print("Checking for \(fileURL.absoluteURL)")
             let fileManager = FileManager.default
             
             // Check if file exists, given its path
             
-            if fileManager.fileExists(atPath: "\(fileURL)") {
+            if fileManager.fileExists(atPath: fileURL.path) {
+                print("File found")
                 count += 1
                 continue // find maximum survey num taken
             } else { // if SurveyX not found, set count to X
+                print("File not found")
                 break
             }
+        }
+        if count > 5 {
+            submit.isEnabled = true
         }
     }
     
@@ -214,13 +275,20 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         UNUserNotificationCenter.current().removeAllDeliveredNotifications()
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [requestIdentifier])
         
-        let DocumentDirURL = try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+        //let DocumentDirURL =  try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: NSURL() as URL, create: true)
         let fileName = "Survey" + String(count)
-        let fileURL = DocumentDirURL.appendingPathComponent(fileName).appendingPathExtension("csv")
+        let fileURL = filePath.appendingPathComponent(fileName).appendingPathExtension("csv")
+        if !FileManager.default.fileExists( atPath: fileURL.absoluteString )
+        {
+            print("Creating \(fileName)")
+            _ = try? FileManager.default.createDirectory( atPath: fileURL.absoluteString,
+                                                        withIntermediateDirectories: true,
+                                                        attributes: nil )
+        }
         var csvText = "Q1=NA&Q2=NA&Q3=NA&Q4=NA&Q5=NA&Q6a=NA&Q6b=NA&Q6c=NA&Qcd=NA&Q7a=NA&Q7b=NA&"
         csvText += "latitude=" + latitude.text! + "&"
         csvText += "longitude=" + longitude.text! + "&"
-        csvText += "id=" + uuid + "&"
+        csvText += "id=" + id.text! + "&"
         let date = Date()
         let calendar = Calendar.current
         let hour = calendar.component(.hour, from: date)
@@ -233,11 +301,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         csvText += (hour as NSNumber).stringValue + ":" + (minutes as NSNumber).stringValue
         csvText += ":" + (seconds as NSNumber).stringValue
         
-        do {
-            // Write to the file
-            try csvText.write(to: fileURL, atomically: true, encoding: String.Encoding.utf8)
-        } catch let error as NSError {
-            print("Failed writing to URL: \(fileURL), Error: " + error.localizedDescription)
+        if FileManager.default.fileExists( atPath: fileURL.path ) == false
+        {
+            print("Creating \(fileURL.path)")
+            let success = FileManager.default.createFile(atPath: fileURL.path, contents: csvText.data(using: .utf8), attributes: nil)
+            print("Success = \(success)")
         }
         survey.isEnabled = false
         count += 1
@@ -255,10 +323,11 @@ extension ViewController : ORKTaskViewControllerDelegate {
             let fileName = "Survey" + String(count)
             count += 1
             if count > 5 {submit.isEnabled = true}
-            let DocumentDirURL = try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+            //let DocumentDirURL =  try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: NSURL() as URL, create: true)
             
-            let fileURL = DocumentDirURL.appendingPathComponent(fileName).appendingPathExtension("csv")
-            print("FilePath: \(fileURL.path)")
+            let fileURL = filePath.appendingPathComponent(fileName).appendingPathExtension("csv")
+            
+            print("\(FileManager.default.fileExists( atPath: fileURL.absoluteString ))")
             //var csvText = "Q1,Q2,Q3,Q4,Q5,Q6a,Q6b,Q6c,Q6d,Q7a,Q7b,Latitude,Longitude\r\n"
             var csvText = ""
             
@@ -349,7 +418,7 @@ extension ViewController : ORKTaskViewControllerDelegate {
             }
             csvText += "latitude="+latitude.text! + "&"
             csvText += "longitude="+longitude.text! + "&"// + "\n"
-            csvText += "id=" + uuid + "&"
+            csvText += "id=" + id.text! + "&"
             
             let date = Date()
             let calendar = Calendar.current
@@ -365,16 +434,24 @@ extension ViewController : ORKTaskViewControllerDelegate {
             
             UNUserNotificationCenter.current().removeAllDeliveredNotifications()
             UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [requestIdentifier])
-            
+            print("\(FileManager.default.fileExists(atPath: filePath.path))")
+            if FileManager.default.fileExists( atPath: fileURL.path ) == false
+            {
+                print("Creating \(fileURL.path)")
+                let success = FileManager.default.createFile(atPath: fileURL.path, contents: csvText.data(using: .utf8), attributes: nil)
+                print("Success = \(success)")
+            }
+            //print("\(FileManager.default.fileExists( atPath: fileURL.path ))")
+            /*
             do {
                 // Write to the file
                 try csvText.write(to: fileURL, atomically: true, encoding: String.Encoding.utf8)
             } catch let error as NSError {
                 print("Failed writing to URL: \(fileURL), Error: " + error.localizedDescription)
-            }
+            }*/
             
         }
-        survey.isEnabled = false
+        //survey.isEnabled = false
         centralManager?.scanForPeripherals(withServices: arrayOfServices, options: nil)
         taskViewController.dismiss(animated: true, completion: nil)
     }
@@ -384,8 +461,8 @@ extension ViewController : ORKTaskViewControllerDelegate {
         for x in 1...count-1 {
             var readString = "" // Used to store the file contents
             let fileName = "Survey" + String(x)
-            let DocumentDirURL = try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-            let fileURL = DocumentDirURL.appendingPathComponent(fileName).appendingPathExtension("csv")
+            //let DocumentDirURL =  try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: NSURL() as URL, create: true)
+            let fileURL = filePath.appendingPathComponent(fileName).appendingPathExtension("csv")
             do {
                 // Read the file contents
                 readString = try String(contentsOf: fileURL)
