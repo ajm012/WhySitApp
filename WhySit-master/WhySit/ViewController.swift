@@ -523,6 +523,11 @@ extension ViewController: CBCentralManagerDelegate {
     
     // Returns true if the last notification was sent in a past window
     func schedulerDaemonCheck() -> Bool {
+        // check if currently inside window
+        if convertCurrentTimeToDouble() > sleepTime || convertCurrentTimeToDouble() < wakeUpTime {
+            return false
+        }
+        // check if notification is appropriate
         let current = convertCurrentTimeToDouble() - wakeUpTime
         let last = lastNotification - wakeUpTime
         if NSInteger(current / windowLength) - NSInteger(last / windowLength) > 0 {
