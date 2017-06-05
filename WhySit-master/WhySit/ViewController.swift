@@ -7,8 +7,6 @@
 //
 // TODO:
 // scheduler almost works, but survey not enabled when it should be
-// on viewload, check for stored csvs
-// block surveys outside of window
 
 import UIKit
 import CoreLocation
@@ -21,6 +19,7 @@ import AVFoundation
 class ViewController: UIViewController, CLLocationManagerDelegate {
     
     let requestIdentifier = "SampleRequest"
+    let SERVER = "http://murphy.wot.eecs.northwestern.edu/~ajm012/WhySitServer.py"
     
     @IBOutlet weak var survey: UIButton!
     @IBOutlet weak var submit: UIButton!
@@ -258,12 +257,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         }
     }
     
-    /*@IBAction func consentTapped(sender : AnyObject) {
-        let taskViewController = ORKTaskViewController(task: ConsentTask, taskRun: nil)
-        taskViewController.delegate = self
-        self.present(taskViewController, animated: true, completion: nil)
-    }*/
-    
     @IBAction func surveyTapped(sender : AnyObject) {
         let taskViewController = ORKTaskViewController(task: SurveyTask, taskRun: nil)
         taskViewController.delegate = self
@@ -278,13 +271,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         //let DocumentDirURL =  try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: NSURL() as URL, create: true)
         let fileName = "Survey" + String(count)
         let fileURL = filePath.appendingPathComponent(fileName).appendingPathExtension("csv")
-        if !FileManager.default.fileExists( atPath: fileURL.absoluteString )
-        {
-            print("Creating \(fileName)")
-            _ = try? FileManager.default.createDirectory( atPath: fileURL.absoluteString,
-                                                        withIntermediateDirectories: true,
-                                                        attributes: nil )
-        }
         var csvText = "Q1=NA&Q2=NA&Q3=NA&Q4=NA&Q5=NA&Q6a=NA&Q6b=NA&Q6c=NA&Qcd=NA&Q7a=NA&Q7b=NA&"
         csvText += "latitude=" + latitude.text! + "&"
         csvText += "longitude=" + longitude.text! + "&"
@@ -322,7 +308,7 @@ extension ViewController : ORKTaskViewControllerDelegate {
             
             let fileName = "Survey" + String(count)
             count += 1
-            if count > 5 {submit.isEnabled = true}
+            if count > 1 {submit.isEnabled = true}
             //let DocumentDirURL =  try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: NSURL() as URL, create: true)
             
             let fileURL = filePath.appendingPathComponent(fileName).appendingPathExtension("csv")
@@ -469,7 +455,7 @@ extension ViewController : ORKTaskViewControllerDelegate {
             } catch let error as NSError {
                 print("Failed reading from URL: \(fileURL), Error: " + error.localizedDescription)
             }
-            print("File Text: \(readString)")
+            //print("File Text: \(readString)")
             sendToServer(packet: "survey="+String(x)+"&"+readString, url: fileURL)
             try! FileManager.default.removeItem(atPath: fileURL.path)
         }
@@ -477,7 +463,8 @@ extension ViewController : ORKTaskViewControllerDelegate {
     }
     
     func sendToServer(packet: String, url: URL) {
-        var request = URLRequest(url: URL(string: "http://murphy.wot.eecs.northwestern.edu/~ajm012/WhySitServer.py")!)
+        print("Packet = \(packet)")
+        var request = URLRequest(url: URL(string: SERVER)!)
         request.httpMethod = "POST"
         let postString = packet
         request.httpBody = postString.data(using: .utf8)
@@ -492,13 +479,14 @@ extension ViewController : ORKTaskViewControllerDelegate {
                 print("response = \(response)")
                 self.submit.isEnabled = true // allow user to try again
             } else { // if HTTP statusCode is 200, delete file
-                let fileManager = FileManager.default
+                print("response = \(response)")
+                /*let fileManager = FileManager.default
                 do {
-                    try fileManager.removeItem(atPath: "\(url)")
+                    try fileManager.removeItem(atPath: url.path)
                 }
                 catch let error as NSError {
                     print("Ooops! Something went wrong: \(error)")
-                }
+                }*/
             }
             let responseString = String(data: data, encoding: .utf8)
             print("responseString = \(responseString)")
