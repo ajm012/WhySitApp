@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		BF4922361EDC91CC000015B6 /* TimeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF4922351EDC91CC000015B6 /* TimeViewController.swift */; };
-		BF52F3441EB0144A0037A787 /* ResultParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF52F3431EB0144A0037A787 /* ResultParser.swift */; };
 		BF675DC81EAFB0AA00FAFF26 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF675DC71EAFB0AA00FAFF26 /* AppDelegate.swift */; };
 		BF675DCA1EAFB0AA00FAFF26 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF675DC91EAFB0AA00FAFF26 /* ViewController.swift */; };
 		BF675DCD1EAFB0AA00FAFF26 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = BF675DCB1EAFB0AA00FAFF26 /* Main.storyboard */; };
@@ -17,8 +16,6 @@
 		BF675DDD1EAFB0AB00FAFF26 /* WhySitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF675DDC1EAFB0AB00FAFF26 /* WhySitTests.swift */; };
 		BF675DE81EAFB0AB00FAFF26 /* WhySitUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF675DE71EAFB0AB00FAFF26 /* WhySitUITests.swift */; };
 		BF675E051EAFB1F700FAFF26 /* SurveyTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF675E041EAFB1F700FAFF26 /* SurveyTask.swift */; };
-		BF675E071EAFBE2F00FAFF26 /* ConsentDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF675E061EAFBE2F00FAFF26 /* ConsentDocument.swift */; };
-		BF675E091EAFBE9B00FAFF26 /* ConsentTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF675E081EAFBE9B00FAFF26 /* ConsentTask.swift */; };
 		BF8D22001ECF9CB9009E913E /* ResearchKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BF8D21FD1ECF9CA3009E913E /* ResearchKit.framework */; };
 		BF8D22011ECF9CB9009E913E /* ResearchKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = BF8D21FD1ECF9CA3009E913E /* ResearchKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		BFA604AA1EB9059D00143EE5 /* CoreBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BFA604A91EB9059D00143EE5 /* CoreBluetooth.framework */; };
@@ -79,7 +76,6 @@
 
 /* Begin PBXFileReference section */
 		BF4922351EDC91CC000015B6 /* TimeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TimeViewController.swift; sourceTree = "<group>"; };
-		BF52F3431EB0144A0037A787 /* ResultParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResultParser.swift; sourceTree = "<group>"; };
 		BF675DC41EAFB0AA00FAFF26 /* WhySit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WhySit.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BF675DC71EAFB0AA00FAFF26 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		BF675DC91EAFB0AA00FAFF26 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -94,8 +90,6 @@
 		BF675DE71EAFB0AB00FAFF26 /* WhySitUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhySitUITests.swift; sourceTree = "<group>"; };
 		BF675DE91EAFB0AB00FAFF26 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BF675E041EAFB1F700FAFF26 /* SurveyTask.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SurveyTask.swift; sourceTree = "<group>"; };
-		BF675E061EAFBE2F00FAFF26 /* ConsentDocument.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConsentDocument.swift; sourceTree = "<group>"; };
-		BF675E081EAFBE9B00FAFF26 /* ConsentTask.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ConsentTask.swift; sourceTree = "<group>"; };
 		BF8D21F61ECF9CA0009E913E /* ResearchKit.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ResearchKit.xcodeproj; path = "../ResearchKit-master/ResearchKit.xcodeproj"; sourceTree = "<group>"; };
 		BFA604A91EB9059D00143EE5 /* CoreBluetooth.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreBluetooth.framework; path = System/Library/Frameworks/CoreBluetooth.framework; sourceTree = SDKROOT; };
 		BFBD790D1EE09C900007F49B /* silence-10sec.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "silence-10sec.mp3"; sourceTree = SOURCE_ROOT; };
@@ -157,9 +151,6 @@
 				BF4922351EDC91CC000015B6 /* TimeViewController.swift */,
 				BF675DC91EAFB0AA00FAFF26 /* ViewController.swift */,
 				BF675E041EAFB1F700FAFF26 /* SurveyTask.swift */,
-				BF675E061EAFBE2F00FAFF26 /* ConsentDocument.swift */,
-				BF52F3431EB0144A0037A787 /* ResultParser.swift */,
-				BF675E081EAFBE9B00FAFF26 /* ConsentTask.swift */,
 				BF675DCB1EAFB0AA00FAFF26 /* Main.storyboard */,
 				BF675DCE1EAFB0AA00FAFF26 /* Assets.xcassets */,
 				BF675DD01EAFB0AA00FAFF26 /* LaunchScreen.storyboard */,
@@ -372,11 +363,8 @@
 			files = (
 				BF675DCA1EAFB0AA00FAFF26 /* ViewController.swift in Sources */,
 				BF4922361EDC91CC000015B6 /* TimeViewController.swift in Sources */,
-				BF675E071EAFBE2F00FAFF26 /* ConsentDocument.swift in Sources */,
-				BF675E091EAFBE9B00FAFF26 /* ConsentTask.swift in Sources */,
 				BF675DC81EAFB0AA00FAFF26 /* AppDelegate.swift in Sources */,
 				BF675E051EAFB1F700FAFF26 /* SurveyTask.swift in Sources */,
-				BF52F3441EB0144A0037A787 /* ResultParser.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -6,7 +6,7 @@
 //  Copyright © 2017 Andrew McConnell. All rights reserved.
 //
 // TODO:
-// scheduler almost works, but survey not enabled when it should be
+// update() can be called from background now
 
 import UIKit
 import CoreLocation
@@ -50,6 +50,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
     
     var time1Passed = Double()
     var time2Passed = Double()
+    var noteTriggeredCount = 0
     
     var player:AVAudioPlayer!
     
@@ -181,7 +182,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
                 break
             }
         }
-        if count > 5 {
+        if count > 1 {
             submit.isEnabled = true
         }
     }
@@ -189,7 +190,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
     override func viewWillAppear(_ animated: Bool) {
 
         super.viewWillAppear(animated)
-        determineMyCurrentLocation()
+        
         
     }
     
@@ -197,7 +198,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         locationManager = CLLocationManager()
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        locationManager.requestAlwaysAuthorization()
+        //locationManager.requestAlwaysAuthorization()
         
         if CLLocationManager.locationServicesEnabled() {
             locationManager.startUpdatingLocation()
@@ -264,37 +265,39 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
     }
     
     func update() {
-        print("User failed to respond in time...removing notifications, cancelling survey")
-        UNUserNotificationCenter.current().removeAllDeliveredNotifications()
-        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [requestIdentifier])
+        if (noteTriggeredCount == count) {
+            print("User failed to respond in time...removing notifications, cancelling survey")
+            UNUserNotificationCenter.current().removeAllDeliveredNotifications()
+            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [requestIdentifier])
         
-        //let DocumentDirURL =  try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: NSURL() as URL, create: true)
-        let fileName = "Survey" + String(count)
-        let fileURL = filePath.appendingPathComponent(fileName).appendingPathExtension("csv")
-        var csvText = "Q1=NA&Q2=NA&Q3=NA&Q4=NA&Q5=NA&Q6a=NA&Q6b=NA&Q6c=NA&Qcd=NA&Q7a=NA&Q7b=NA&"
-        csvText += "latitude=" + latitude.text! + "&"
-        csvText += "longitude=" + longitude.text! + "&"
-        csvText += "id=" + id.text! + "&"
-        let date = Date()
-        let calendar = Calendar.current
-        let hour = calendar.component(.hour, from: date)
-        let minutes = calendar.component(.minute, from: date)
-        let seconds = calendar.component(.second, from: date)
-        let formatter = DateFormatter()
-        formatter.dateFormat = "dd.MM.yyyy"
-        let current_date = formatter.string(from: date)
-        csvText += "time=" + current_date + " "
-        csvText += (hour as NSNumber).stringValue + ":" + (minutes as NSNumber).stringValue
-        csvText += ":" + (seconds as NSNumber).stringValue
+            //let DocumentDirURL =  try! FileManager.default.url(for: .documentDirectory, in: .userDomainMask, appropriateFor: NSURL() as URL, create: true)
+            let fileName = "Survey" + String(count)
+            let fileURL = filePath.appendingPathComponent(fileName).appendingPathExtension("csv")
+            var csvText = "Q1=NA&Q2=NA&Q3=NA&Q4=NA&Q5=NA&Q6a=NA&Q6b=NA&Q6c=NA&Qcd=NA&Q7a=NA&Q7b=NA&"
+            csvText += "latitude=" + latitude.text! + "&"
+            csvText += "longitude=" + longitude.text! + "&"
+            csvText += "id=" + id.text! + "&"
+            let date = Date()
+            let calendar = Calendar.current
+            let hour = calendar.component(.hour, from: date)
+            let minutes = calendar.component(.minute, from: date)
+            let seconds = calendar.component(.second, from: date)
+            let formatter = DateFormatter()
+            formatter.dateFormat = "dd.MM.yyyy"
+            let current_date = formatter.string(from: date)
+            csvText += "time=" + current_date + " "
+            csvText += (hour as NSNumber).stringValue + ":" + (minutes as NSNumber).stringValue
+            csvText += ":" + (seconds as NSNumber).stringValue
         
-        if FileManager.default.fileExists( atPath: fileURL.path ) == false
-        {
-            print("Creating \(fileURL.path)")
-            let success = FileManager.default.createFile(atPath: fileURL.path, contents: csvText.data(using: .utf8), attributes: nil)
-            print("Success = \(success)")
+            if FileManager.default.fileExists( atPath: fileURL.path ) == false
+            {
+                print("Creating \(fileURL.path)")
+                let success = FileManager.default.createFile(atPath: fileURL.path, contents: csvText.data(using: .utf8),    attributes: nil)
+                print("Success = \(success)")
+            }
+            //survey.isEnabled = false
+            count += 1
         }
-        survey.isEnabled = false
-        count += 1
     }
 }
 
@@ -302,6 +305,7 @@ extension ViewController : ORKTaskViewControllerDelegate {
     func taskViewController(_ taskViewController: ORKTaskViewController, didFinishWith reason: ORKTaskViewControllerFinishReason, error: Error?) {
         //Handle results with taskViewController.result
         submit.isEnabled = false
+        determineMyCurrentLocation()
         
         if (taskViewController.task?.identifier == "SurveyTask" && reason == .completed) {
             print("Starting results")
@@ -313,7 +317,6 @@ extension ViewController : ORKTaskViewControllerDelegate {
             
             let fileURL = filePath.appendingPathComponent(fileName).appendingPathExtension("csv")
             
-            print("\(FileManager.default.fileExists( atPath: fileURL.absoluteString ))")
             //var csvText = "Q1,Q2,Q3,Q4,Q5,Q6a,Q6b,Q6c,Q6d,Q7a,Q7b,Latitude,Longitude\r\n"
             var csvText = ""
             
@@ -438,6 +441,7 @@ extension ViewController : ORKTaskViewControllerDelegate {
             
         }
         //survey.isEnabled = false
+        locationManager.stopUpdatingLocation()
         centralManager?.scanForPeripherals(withServices: arrayOfServices, options: nil)
         taskViewController.dismiss(animated: true, completion: nil)
     }
@@ -455,9 +459,8 @@ extension ViewController : ORKTaskViewControllerDelegate {
             } catch let error as NSError {
                 print("Failed reading from URL: \(fileURL), Error: " + error.localizedDescription)
             }
-            //print("File Text: \(readString)")
             sendToServer(packet: "survey="+String(x)+"&"+readString, url: fileURL)
-            try! FileManager.default.removeItem(atPath: fileURL.path)
+            //try! FileManager.default.removeItem(atPath: fileURL.path)
         }
         count = 1
     }
@@ -480,13 +483,14 @@ extension ViewController : ORKTaskViewControllerDelegate {
                 self.submit.isEnabled = true // allow user to try again
             } else { // if HTTP statusCode is 200, delete file
                 print("response = \(response)")
-                /*let fileManager = FileManager.default
+                let fileManager = FileManager.default
                 do {
+                    print("Removing survey")
                     try fileManager.removeItem(atPath: url.path)
                 }
                 catch let error as NSError {
                     print("Ooops! Something went wrong: \(error)")
-                }*/
+                }
             }
             let responseString = String(data: data, encoding: .utf8)
             print("responseString = \(responseString)")
@@ -501,7 +505,7 @@ extension ViewController: CBCentralManagerDelegate {
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
 
         if (central.state == .poweredOn){
-            //print("here")
+            print("Scanning")
             self.centralManager?.scanForPeripherals(withServices: arrayOfServices, options: nil)
         }
         else {
@@ -536,8 +540,8 @@ extension ViewController: CBCentralManagerDelegate {
         print("NotificationTriggeredThisWindow: \(notificationTriggeredThisWindow)")
         print("Count: \(count)")
         // Check if survey should be enabled
-        let hour = Calendar.current.component(.hour, from: Date())
-        print("Time: \(hour)")
+        //let hour = Calendar.current.component(.hour, from: Date())
+        //print("Time: \(hour)")
         /*if (hour % 3) - (lastNotification % 3) > 0 {
             notificationTriggeredThisWindow = false
         }*/
@@ -548,11 +552,13 @@ extension ViewController: CBCentralManagerDelegate {
         }
         else {
             print("Ignoring signal")
+            centralManager?.scanForPeripherals(withServices: arrayOfServices, options: nil)
         }
  
         if (peripheral.name != nil && !notificationTriggeredThisWindow) {
             peripheral.discoverServices(arrayOfServices)
             triggerSurvey()
+            noteTriggeredCount = count
             lastNotification = convertCurrentTimeToDouble()
             self.timer = Timer.scheduledTimer(timeInterval: 20*60.0, target: self, selector: #selector(self.update), userInfo: nil, repeats: false)
             print("Peripheral discovered")

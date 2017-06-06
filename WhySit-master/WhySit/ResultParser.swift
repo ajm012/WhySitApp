@@ -5,7 +5,7 @@
 //  Created by Andrew McConnell on 4/25/17.
 //  Copyright © 2017 Andrew McConnell. All rights reserved.
 //
-
+/*
 import Foundation
 import ResearchKit
 
@@ -30,4 +30,4 @@ struct ResultParser {
             }
         }
     }
-}
+}*/

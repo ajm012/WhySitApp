@@ -5,7 +5,7 @@
 //  Created by Andrew McConnell on 4/25/17.
 //  Copyright © 2017 Andrew McConnell. All rights reserved.
 //
-
+/*
 import Foundation
 import ResearchKit
 
@@ -39,4 +39,4 @@ public var ConsentDocument: ORKConsentDocument {
     consentDocument.addSignature(ORKConsentSignature(forPersonWithTitle: nil, dateFormatString: nil, identifier: "ConsentDocumentParticipantSignature"))
     
     return consentDocument
-}
+}*/
